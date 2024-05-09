@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { FormArray, FormGroup, Validators } from '@angular/forms';
 import { validatorsInputValidator } from '../CustomValidators/validatorsInput.validator';
+import { constantsPropertyFields } from '../Common/allConstants';
 
 @Injectable({
   providedIn: 'root',
@@ -21,22 +22,26 @@ export class RequiredFunctionsService {
     ] as FormGroup;
 
     //  For Email Validators
-    if (String(type) === 'email') {
+    if (String(type) === constantsPropertyFields.EMAIL) {
       valueControls?.controls['value'].setValidators([
         Validators.required,
         Validators.email,
       ]);
 
       // For number Validators
-    } else if (String(type) === 'number') {
+    } else if (String(type) === constantsPropertyFields.NUMBER) {
       valueControls?.controls['value'].setValidators([
         Validators.required,
+        Validators.maxLength(10),
         validatorsInputValidator.numeric,
       ]);
 
       // For text Validators
-    } else if (String(type) === 'date') {
-      valueControls?.controls['value'].setValidators([Validators.required]);
+    } else if (String(type) === constantsPropertyFields.DATE) {
+      valueControls?.controls['value'].setValidators([
+        Validators.required,
+        validatorsInputValidator.LessThanToday,
+      ]);
     } else {
       valueControls?.controls['value'].setValidators([Validators.required]);
     }

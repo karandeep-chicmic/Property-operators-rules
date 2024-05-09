@@ -19,4 +19,5 @@ export interface properties {
   type?: string;
   active?: boolean;
   operators?: operators;
+  index?: number
 }

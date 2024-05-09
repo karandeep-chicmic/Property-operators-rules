@@ -11,6 +11,10 @@ import {
 import { CommonModule } from '@angular/common';
 import { RequiredFunctionsService } from '../../Services/required-functions.service';
 import Swal from 'sweetalert2';
+import {
+  constantsPropertyFields,
+  validationsConst,
+} from '../../Common/allConstants';
 
 @Component({
   selector: 'app-property-rules',
@@ -30,14 +34,15 @@ export class PropertyRulesComponent implements OnInit {
   form!: FormGroup;
   propertyData: properties[] = [];
   operators: string[] = [];
-  selectedProperty: properties = {};
-  inputType: string = 'text';
+  selectedProperty: properties[] = [];
+  inputType: string = constantsPropertyFields.TEXT;
 
   // for getting selected operator and index associated with the property of form-array element
   selectedFormOperators: {
     index?: number;
     type?: string;
     operators?: operators | undefined;
+    name?: string; // to store the name of selected property
   }[] = [];
 
   //Constructor and Lifecycle Hooks
@@ -101,6 +106,7 @@ export class PropertyRulesComponent implements OnInit {
         return true;
       }),
     ];
+    // Variable to store property selected
 
     // Variable to store property selected
     const getProperty: properties =
@@ -116,6 +122,7 @@ export class PropertyRulesComponent implements OnInit {
       index: i,
       type: getProperty?.type,
       operators: getProperty?.operators,
+      name: name,
     });
 
     // Third - To remove previous validators
@@ -146,7 +153,8 @@ export class PropertyRulesComponent implements OnInit {
   //  To get the type of input.
   getInputType(i: number) {
     if (
-      this.selectedFormOperators.find((d) => d.index === i)?.type === 'date'
+      this.selectedFormOperators.find((d) => d.index === i)?.type ===
+      constantsPropertyFields.DATE
     ) {
       return 'date';
     }
@@ -158,11 +166,30 @@ export class PropertyRulesComponent implements OnInit {
       i
     ] as FormGroup;
 
-    if (str === 'touched') {
+    if (str === validationsConst.TOUCHED) {
       return valControls.controls['value'].touched;
     }
-    if (str === 'required') {
+    if (str === validationsConst.REQUIRED) {
       return valControls.controls['value'].errors?.['required'];
+    } else if (str === validationsConst.EMAIL) {
+      return valControls.controls['value'].errors?.['email'];
+    } else if (str === validationsConst.NUMBER) {
+      return valControls.controls['value'].errors?.['invalidNumber'];
+    } else if (
+      str === validationsConst.MAX_LENGTH &&
+      valControls.controls['property'].value === validationsConst.PHONE_NUMBER
+    ) {
+      return valControls.controls['value'].errors?.['maxlength'];
+    }else if(str=== validationsConst.MAX_DATE){
+      return valControls.controls['value'].errors?.['LessThanToday']
+    }
+    return false;
+  }
+
+  //  to check whether to disable the property dropdown
+  ifNameIsSelected(name: string | undefined) {
+    if (name !== undefined) {
+      return this.selectedFormOperators.find((data) => data.name === name);
     }
     return false;
   }

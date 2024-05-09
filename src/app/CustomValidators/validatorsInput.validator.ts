@@ -1,4 +1,4 @@
-import { AbstractControl, FormControl } from '@angular/forms';
+import { AbstractControl, FormControl, ValidationErrors } from '@angular/forms';
 
 export class validatorsInputValidator {
   static numeric(control: AbstractControl) {
@@ -8,6 +8,14 @@ export class validatorsInputValidator {
 
     if (!val.toString().match(/^[0-9]+(\.?[0-9]+)?$/))
       return { invalidNumber: true };
+
+    return null;
+  }
+
+  static LessThanToday(control: FormControl): ValidationErrors | null {
+    let today: Date = new Date();
+
+    if (new Date(control.value) > today) return { LessThanToday: true };
 
     return null;
   }

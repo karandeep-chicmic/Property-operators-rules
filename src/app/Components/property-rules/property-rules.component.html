@@ -19,6 +19,7 @@
             <option
               *ngFor="let property of propertyData"
               [value]="property.name"
+              [disabled]="ifNameIsSelected(property.name)"
             >
               {{ property.name }}
             </option>
@@ -46,9 +47,24 @@
             <span
               *ngIf="validatorCondition('required', i)"
               class="validator-span"
-              >This Field is Required</span
-            >
-            
+              >This Field is Required
+            </span>
+            <span *ngIf="validatorCondition('email', i)" class="validator-span"
+              >Wrong Email Format
+            </span>
+            <span *ngIf="validatorCondition('number', i)" class="validator-span"
+              >This Field can only contains numbers
+            </span>
+            <span
+              *ngIf="validatorCondition('maxlength', i)"
+              class="validator-span"
+              >Phone Number can only have 10 digits
+            </span>
+            <span
+              *ngIf="validatorCondition('LessThanToday', i)"
+              class="validator-span"
+              >Date field cannot exceed todays date
+            </span>
           </div>
           <!-- Validators End-->
         </div>
