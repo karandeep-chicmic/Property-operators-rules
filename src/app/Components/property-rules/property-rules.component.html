@@ -1,0 +1,65 @@
+<div class="form-container">
+  <!-- Main Form -->
+  <form [formGroup]="mainForm" (ngSubmit)="showForm()">
+    <!-- div for formArray  -->
+    <div formArrayName="arr">
+      <!-- div for traversing property-->
+      <div
+        *ngFor="let item of getControls(); let i = index"
+        class="form-group"
+        [formGroupName]="i"
+      >
+        <!-- Property Dropdown -->
+        <div class="form-elements">
+          <label>Property:</label>
+          <select
+            formControlName="property"
+            (change)="propertyChange($event, i)"
+          >
+            <option
+              *ngFor="let property of propertyData"
+              [value]="property.name"
+            >
+              {{ property.name }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Operator Dropdown -->
+        <div class="form-elements">
+          <label>Operator:</label>
+          <select formControlName="operators">
+            <option *ngFor="let operator of getOperators(i)" [value]="operator">
+              {{ operator }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Value input -->
+        <div class="form-elements">
+          <label>Value:</label>
+          <div>
+            <input [type]="getInputType(i)" formControlName="value" />
+          </div>
+          <!-- Validators Start-->
+          <div *ngIf="validatorCondition('touched', i)" class="validators">
+            <span
+              *ngIf="validatorCondition('required', i)"
+              class="validator-span"
+              >This Field is Required</span
+            >
+            
+          </div>
+          <!-- Validators End-->
+        </div>
+      </div>
+
+      <!-- div for Buttons inside form -->
+      <div class="form-btns">
+        <button class="submit-btn" type="submit">Submit</button>
+        <br /><br />
+        <button type="button" (click)="addRule()">Add Rule</button>
+      </div>
+    </div>
+  </form>
+</div>
