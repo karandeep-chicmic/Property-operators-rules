@@ -19,4 +19,20 @@ export class validatorsInputValidator {
 
     return null;
   }
+
+  static spacesFrontAndBack(control: AbstractControl): ValidationErrors | null {
+    let val = control.value;
+    if (val.trim().length !== val.length) {
+      return { spacesFrontAndBack: true };
+    }
+    return null;
+  }
+
+  static invalidSalary(control: AbstractControl): ValidationErrors | null {
+    let val = Number(control.value);
+    if(val>=200000){
+      return { invalidSalary: true };
+    }
+    return null
+  }
 }

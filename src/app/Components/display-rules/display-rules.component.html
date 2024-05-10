@@ -1,0 +1,58 @@
+<h2>Rules</h2>
+
+<table class="table">
+  <thead>
+    <tr>
+      <th class="th">Criteria</th>
+      <th class="th">Rules Details</th>
+
+      <!-- Add more table headers for other properties if needed -->
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let rule of rules">
+      <td class="td">{{ rule.name }}</td>
+      <td class="td">
+        <br />
+        <table>
+          <thead>
+            <tr>
+              <th class="th">Property</th>
+              <th class="th">Operators</th>
+              <th class="th">Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let allAsRules of rule.rules">
+              <td class="td">{{ allAsRules.property }}</td>
+              <td class="td">{{ allAsRules.operators }}</td>
+              <td class="td">{{ allAsRules.value }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <br />
+        <br />
+      </td>
+    </tr>
+  </tbody>
+</table>
+<br />
+<br />
+<br />
+<!-- <button class="btn btn-dark" (click)="matchRules()">Match Rules</button> -->
+<h2>All the users with matching Criteria</h2>
+<table id="table2">
+  <thead>
+    <tr>
+      <th>User name</th>
+      <th>Criteria Matching</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let criteria of criteriaSatisfies">
+      <td>{{ criteria.fieldName }}</td>
+      <td>{{ criteria.criteria }}</td>
+     
+    </tr>
+  </tbody>
+</table>

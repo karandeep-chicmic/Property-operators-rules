@@ -1,7 +1,32 @@
+<h1>Rules Add</h1>
+
 <div class="form-container">
   <!-- Main Form -->
   <form [formGroup]="mainForm" (ngSubmit)="showForm()">
     <!-- div for formArray  -->
+    <span>Criteria Name </span>
+    <input type="text" formControlName="name" (input)="criteriaCheck($event)" />
+
+    <!-- Validation for Criteria Name -->
+    <span *ngIf="mainForm.controls['name'].touched">
+      <span class="validator-span" *ngIf="isCriteria">
+        Criteria name already Exists</span
+      >
+      <span
+        class="validator-span"
+        *ngIf="mainForm.controls['name']?.errors?.['cannotContainSpace']"
+      >
+        Cant have space in criteria field</span
+      >
+      <span
+        class="validator-span"
+        *ngIf="mainForm.controls['name']?.errors?.['required']"
+      >
+        This field is Required</span
+      >
+    </span>
+    <!-- Validation for Criteria Name ends -->
+    <br /><br /><br />
     <div formArrayName="arr">
       <!-- div for traversing property-->
       <div
@@ -16,6 +41,7 @@
             formControlName="property"
             (change)="propertyChange($event, i)"
           >
+            <option value="" selected>Select a Property</option>
             <option
               *ngFor="let property of propertyData"
               [value]="property.name"
@@ -39,8 +65,11 @@
         <!-- Value input -->
         <div class="form-elements">
           <label>Value:</label>
-          <div>
-            <input [type]="getInputType(i)" formControlName="value" />
+          <div *ngIf="getInputType(i) !== 'date'">
+            <input formControlName="value" />
+          </div>
+          <div *ngIf="getInputType(i) === 'date'">
+            <input type="date" max="2024-05-09" formControlName="value" />
           </div>
           <!-- Validators Start-->
           <div *ngIf="validatorCondition('touched', i)" class="validators">
@@ -65,17 +94,42 @@
               class="validator-span"
               >Date field cannot exceed todays date
             </span>
+            <span
+              *ngIf="validatorCondition('spacesFrontAndBack', i)"
+              class="validator-span"
+            >
+              This field cannot start or end with spaces
+            </span>
+            <span
+              *ngIf="validatorCondition('invalidSalary', i)"
+              class="validator-span"
+            >
+              salary should be less than 2lacs
+            </span>
           </div>
           <!-- Validators End-->
+        </div>
+        <div class="form-element">
+          <button
+            type="button"
+            class="btn btn-danger mt-4"
+            (click)="deleteFormGroup(i)"
+          >
+            Delete this property
+          </button>
         </div>
       </div>
 
       <!-- div for Buttons inside form -->
       <div class="form-btns">
-        <button class="submit-btn" type="submit">Submit</button>
+        <button class="submit-btn button" type="submit">Submit</button>
         <br /><br />
-        <button type="button" (click)="addRule()">Add Rule</button>
+        <button class="button" type="button" (click)="addRule()">
+          Add Rule
+        </button>
       </div>
     </div>
   </form>
 </div>
+
+<!-- {{ mainForm.controls["name"].value }} -->

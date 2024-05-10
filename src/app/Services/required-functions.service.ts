@@ -1,7 +1,10 @@
 import { Injectable } from '@angular/core';
 import { FormArray, FormGroup, Validators } from '@angular/forms';
 import { validatorsInputValidator } from '../CustomValidators/validatorsInput.validator';
-import { constantsPropertyFields } from '../Common/allConstants';
+import {
+  constantsPropertyFields,
+  validationsConst,
+} from '../Common/allConstants';
 
 @Injectable({
   providedIn: 'root',
@@ -15,8 +18,17 @@ export class RequiredFunctionsService {
   }
 
   // to set validators and update their validity
-  setFormValidators(form: FormGroup, type: string, index: number) {
+  setFormValidators(
+    form: FormGroup,
+    type: string,
+    index: number,
+    name: string
+  ) {
     // saved control group in a constant
+
+
+
+
     const valueControls: FormGroup = (form?.get('arr') as FormArray).controls[
       index
     ] as FormGroup;
@@ -28,19 +40,41 @@ export class RequiredFunctionsService {
         Validators.email,
       ]);
 
-      // For number Validators
-    } else if (String(type) === constantsPropertyFields.NUMBER) {
+      // For Salary Validators
+    } else if (
+      String(type) === constantsPropertyFields.NUMBER &&
+      name === validationsConst.SALARY
+    ) {
       valueControls?.controls['value'].setValidators([
         Validators.required,
-        Validators.maxLength(10),
+        // Validators.maxLength(10),
+        validatorsInputValidator.invalidSalary,
         validatorsInputValidator.numeric,
       ]);
 
-      // For text Validators
+      // For Phone number Validators
+    } else if (
+      String(type) === constantsPropertyFields.NUMBER &&
+      name === validationsConst.PHONE_NUMBER
+    ) {
+      console.log('Inside Phone Number');
+      valueControls?.controls['value'].setValidators([
+        Validators.required,
+        Validators.maxLength(10),
+        // validatorsInputValidator.invalidSalary,
+        validatorsInputValidator.numeric,
+      ]);
+
+      // For Date Validators
     } else if (String(type) === constantsPropertyFields.DATE) {
       valueControls?.controls['value'].setValidators([
         Validators.required,
         validatorsInputValidator.LessThanToday,
+      ]);
+    } else if (String(type) === constantsPropertyFields.TEXT) {
+      valueControls?.controls['value'].setValidators([
+        Validators.required,
+        validatorsInputValidator.spacesFrontAndBack,
       ]);
     } else {
       valueControls?.controls['value'].setValidators([Validators.required]);

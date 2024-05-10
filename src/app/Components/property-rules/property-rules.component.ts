@@ -1,6 +1,11 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { operators, properties } from '../../Interfaces/Operators.interface';
+import {
+  criteria,
+  operators,
+  properties,
+} from '../../Interfaces/Operators.interface';
 import { PropertyDataService } from '../../Services/property-data.service';
+
 import {
   FormArray,
   FormBuilder,
@@ -10,17 +15,20 @@ import {
 } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { RequiredFunctionsService } from '../../Services/required-functions.service';
-import Swal from 'sweetalert2';
 import {
   constantsPropertyFields,
   validationsConst,
 } from '../../Common/allConstants';
+import { SweetAlertMsgsService } from '../../Services/sweet-alert-msgs.service';
+import { Router } from '@angular/router';
+import { nameValidator } from '../../CustomValidators/nameValidator.validator';
 
 @Component({
   selector: 'app-property-rules',
   standalone: true,
   imports: [ReactiveFormsModule, CommonModule],
   templateUrl: './property-rules.component.html',
+  providers: [],
   styleUrl: './property-rules.component.css',
 })
 export class PropertyRulesComponent implements OnInit {
@@ -28,6 +36,8 @@ export class PropertyRulesComponent implements OnInit {
   propertyDataService = inject(PropertyDataService);
   formBuilder = inject(FormBuilder);
   requiredFunctions = inject(RequiredFunctionsService);
+  router = inject(Router);
+  sweetAlertMsgs = inject(SweetAlertMsgsService);
 
   // All the variables And Reactive form
   mainForm!: FormGroup;
@@ -36,6 +46,8 @@ export class PropertyRulesComponent implements OnInit {
   operators: string[] = [];
   selectedProperty: properties[] = [];
   inputType: string = constantsPropertyFields.TEXT;
+  selectedOption: string = '';
+  isCriteria: boolean = false;
 
   // for getting selected operator and index associated with the property of form-array element
   selectedFormOperators: {
@@ -45,8 +57,7 @@ export class PropertyRulesComponent implements OnInit {
     name?: string; // to store the name of selected property
   }[] = [];
 
-  //Constructor and Lifecycle Hooks
-  constructor() {
+  ngOnInit(): void {
     this.form = this.formBuilder.group({
       property: ['', Validators.required],
       operators: ['', Validators.required],
@@ -54,23 +65,21 @@ export class PropertyRulesComponent implements OnInit {
     });
 
     this.mainForm = this.formBuilder.group({
+      name: ['', [Validators.required, nameValidator.cannotContainSpace]],
       arr: this.formBuilder.array([this.form]),
     });
-  }
-  ngOnInit(): void {
+
     this.propertyDataService.getProperties().subscribe((data) => {
       this.propertyData = data;
     });
+
+    // this.propertyData = this.requiredFunctions.formData
   }
 
   //All the Methods of the Class Are as below.
   addRule() {
     if (this.mainForm.invalid) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Oops...',
-        text: 'Fill the Form details correctly!!',
-      });
+      this.sweetAlertMsgs.showSweetAlertError();
       return;
     }
     const formArray = this.mainForm.get('arr') as FormArray;
@@ -85,10 +94,27 @@ export class PropertyRulesComponent implements OnInit {
 
   // onSubmitting the main form
   showForm() {
-    console.log(this.mainForm.value);
+    if (this.mainForm.invalid) {
+      this.sweetAlertMsgs.showSweetAlertError();
+      return;
+    }
+    const id: number = this.propertyDataService.idGenerator();
+
+    //  Creating a new criteria object with name = string and rules = array
+    const criteriaObj: criteria = {
+      id: id,
+      name: this.mainForm.controls['name'].value,
+      rules: [...this.mainForm.controls['arr'].value],
+    };
+
+    //  Pushing the criteria object to the allRules array
+    this.propertyDataService.allRules.push({ ...criteriaObj });
+
+    // navigating to display rules
+    this.router.navigate(['/displayRules']);
   }
 
-  // to get controls of formgroups in form array
+  // to get controls of form-groups in form array
   getControls() {
     return (this.mainForm.get('arr') as FormArray)?.controls;
   }
@@ -97,7 +123,7 @@ export class PropertyRulesComponent implements OnInit {
   propertyChange(event: any, i: number) {
     const name: string = String(event.target.value);
 
-    // first - we remove the operators from the selectedFormOperators
+    // First - we remove the operators from the selectedFormOperators
     this.selectedFormOperators = [
       ...this.selectedFormOperators.filter((data) => {
         if (data.index == i) {
@@ -106,7 +132,6 @@ export class PropertyRulesComponent implements OnInit {
         return true;
       }),
     ];
-    // Variable to store property selected
 
     // Variable to store property selected
     const getProperty: properties =
@@ -117,12 +142,12 @@ export class PropertyRulesComponent implements OnInit {
         return false;
       }) || {};
 
-    // second - then we push the operators with associated index to selectedFormOperators
+    // Second - then we push the operators with associated index to selectedFormOperators
     this.selectedFormOperators.push({
       index: i,
       type: getProperty?.type,
       operators: getProperty?.operators,
-      name: name,
+      name: name, //To disable the property name option
     });
 
     // Third - To remove previous validators
@@ -132,7 +157,8 @@ export class PropertyRulesComponent implements OnInit {
     this.requiredFunctions.setFormValidators(
       this.mainForm,
       this.selectedFormOperators[i].type || 'text',
-      i
+      i,
+      name
     );
 
     // Fifth - set the value input field empty
@@ -141,6 +167,7 @@ export class PropertyRulesComponent implements OnInit {
     ).controls['value'].setValue('');
   }
 
+  // To get the operators of selected property
   getOperators(i: number) {
     // first - we find the operators with associated index from selectedFormOperators
     const operatorsObj: operators =
@@ -161,29 +188,34 @@ export class PropertyRulesComponent implements OnInit {
     return 'text';
   }
 
+  // validation conditions
   validatorCondition(str: string, i: number) {
     const valControls = (this.mainForm.get('arr') as FormArray).controls[
       i
     ] as FormGroup;
 
-    if (str === validationsConst.TOUCHED) {
-      return valControls.controls['value'].touched;
+    const valueControl = valControls.controls['value'];
+
+    switch (str) {
+      case validationsConst.TOUCHED:
+        return valueControl.touched;
+      case validationsConst.REQUIRED:
+        return valueControl.errors?.['required'];
+      case validationsConst.EMAIL:
+        return valueControl.errors?.['email'];
+      case validationsConst.NUMBER:
+        return valueControl.errors?.['invalidNumber'];
+      case validationsConst.MAX_LENGTH:
+        return valueControl.errors?.['maxlength'];
+      case validationsConst.MAX_DATE:
+        return valueControl.errors?.['LessThanToday'];
+      case validationsConst.SPACES_FRONT_AND_BACK:
+        return valueControl.errors?.['spacesFrontAndBack'];
+      case 'invalidSalary':
+        return valueControl.errors?.['invalidSalary'];
+      default:
+        return false;
     }
-    if (str === validationsConst.REQUIRED) {
-      return valControls.controls['value'].errors?.['required'];
-    } else if (str === validationsConst.EMAIL) {
-      return valControls.controls['value'].errors?.['email'];
-    } else if (str === validationsConst.NUMBER) {
-      return valControls.controls['value'].errors?.['invalidNumber'];
-    } else if (
-      str === validationsConst.MAX_LENGTH &&
-      valControls.controls['property'].value === validationsConst.PHONE_NUMBER
-    ) {
-      return valControls.controls['value'].errors?.['maxlength'];
-    }else if(str=== validationsConst.MAX_DATE){
-      return valControls.controls['value'].errors?.['LessThanToday']
-    }
-    return false;
   }
 
   //  to check whether to disable the property dropdown
@@ -192,5 +224,27 @@ export class PropertyRulesComponent implements OnInit {
       return this.selectedFormOperators.find((data) => data.name === name);
     }
     return false;
+  }
+
+  // to delete a form group from array
+  deleteFormGroup(index: number) {
+    const formArray: any = this.mainForm.get('arr') as FormArray;
+    this.selectedFormOperators = [
+      ...this.selectedFormOperators.filter((data) => data.index != index),
+    ];
+
+    formArray.removeAt(index);
+  }
+  //  to check if name of criteria exists in criteria input
+  criteriaCheck(event: any) {
+    const toTest: string[] = [];
+    this.propertyDataService.allRules.forEach((data: any) =>
+      toTest.push(data.name)
+    );
+    if (toTest.find((data) => data === event.target.value)) {
+      this.isCriteria = true;
+    } else {
+      this.isCriteria = false;
+    }
   }
 }

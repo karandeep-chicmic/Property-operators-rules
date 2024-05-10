@@ -14,5 +14,7 @@ export const validationsConst = {
   MAX_LENGTH: 'maxlength',
   NUMBER: 'number',
   PHONE_NUMBER: 'phone number',
+  SALARY: 'Salary',
   MAX_DATE: 'LessThanToday',
+  SPACES_FRONT_AND_BACK: 'spacesFrontAndBack',
 };

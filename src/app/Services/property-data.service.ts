@@ -1,5 +1,5 @@
-import { Injectable } from '@angular/core';
-import { properties } from '../Interfaces/Operators.interface';
+import { Injectable, signal } from '@angular/core';
+import { criteria, properties, rules } from '../Interfaces/Operators.interface';
 import { Observable, of } from 'rxjs';
 import { constantsPropertyFields } from '../Common/allConstants';
 
@@ -7,6 +7,8 @@ import { constantsPropertyFields } from '../Common/allConstants';
   providedIn: 'root',
 })
 export class PropertyDataService {
+  allRules: criteria[] = [];
+  id: any = signal(1);
   //  properties with name, id and their active status
   properties: properties[] = [
     {
@@ -40,8 +42,6 @@ export class PropertyDataService {
       type: constantsPropertyFields.NUMBER,
       active: true,
       operators: {
-        usa: true,
-        india: true,
         startsWith: true,
         includes: true,
         status: true,
@@ -82,7 +82,16 @@ export class PropertyDataService {
       },
     },
   ];
+  rulesToMatch: rules[] = [
+    { property: 'name', operators: 'startsWith', value: 'karan' },
+  ];
 
+  idGenerator() {
+    const id: number = this.id();
+    this.id.set(id + 1);
+
+    return id;
+  }
   getProperties(): Observable<properties[]> {
     return of(this.properties);
   }
